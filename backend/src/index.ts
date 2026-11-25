@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import { env } from "./config/env";
 import { connectMongo } from "./db/mongo";
 import { flowsRoutes } from "./routes/flows.routes";
+import { hooksRoutes } from "./routes/hooks.routes";
 import { AppError } from "./errors/AppError";
 
 async function start() {
@@ -14,31 +15,18 @@ async function start() {
                 return error.toResponse();
             }
 
-            // Elysia's own schema validation failures (e.g. name too short,
-            // missing required field) land here with code "VALIDATION".
             if (code === "VALIDATION") {
                 set.status = 400;
-                return {
-                    error: {
-                        code: "VALIDATION_ERROR",
-                        message: error.message,
-                        details: {},
-                    },
-                };
+                return { error: { code: "VALIDATION_ERROR", message: error.message, details: {} } };
             }
 
             console.error(error);
             set.status = 500;
-            return {
-                error: {
-                    code: "INTERNAL_ERROR",
-                    message: "Something went wrong",
-                    details: {},
-                },
-            };
+            return { error: { code: "INTERNAL_ERROR", message: "Something went wrong", details: {} } };
         })
         .get("/health", () => ({ status: "ok", service: "flowlet-backend" }))
-        .use(flowsRoutes);
+        .use(flowsRoutes)
+        .use(hooksRoutes);
 
     app.listen(env.port, () => {
         console.log(`Flowlet backend running at http://localhost:${env.port}`);

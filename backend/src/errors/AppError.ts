@@ -1,7 +1,3 @@
-// Working on: standard error shape — matches the contract's
-// { error: { code, message, details } } exactly, so every route that
-// throws one of these gets formatted consistently by the global handler.
-
 export class AppError extends Error {
     constructor(
         public code: string,
@@ -39,5 +35,11 @@ export class ConflictError extends AppError {
 export class UnauthorizedError extends AppError {
     constructor(message: string) {
         super("UNAUTHORIZED", message, 401);
+    }
+}
+
+export class ValidationError extends AppError {
+    constructor(message: string, details: Record<string, unknown> = {}) {
+        super("VALIDATION_ERROR", message, 400, details);
     }
 }
