@@ -1,14 +1,24 @@
-// Working on: entry point — minimal Elysia app with a health check,
-// just to confirm the scaffold runs before we add real features.
+// Working on: entry point — now also connects to MongoDB before the
+// server starts accepting requests.
 
 import { Elysia } from "elysia";
 import { env } from "./config/env";
+import { connectMongo } from "./db/mongo";
 
-const app = new Elysia().get("/health", () => ({
-    status: "ok",
-    service: "flowlet-backend",
-}));
+async function start() {
+    await connectMongo();
 
-app.listen(env.port, () => {
-    console.log(`Flowlet backend running at http://localhost:${env.port}`);
+    const app = new Elysia().get("/health", () => ({
+        status: "ok",
+        service: "flowlet-backend",
+    }));
+
+    app.listen(env.port, () => {
+        console.log(`Flowlet backend running at http://localhost:${env.port}`);
+    });
+}
+
+start().catch((err) => {
+    console.error("Failed to start server:", err);
+    process.exit(1);
 });
