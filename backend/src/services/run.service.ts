@@ -16,6 +16,7 @@ export interface CreateRunInput {
     result: EngineResult;
     startedAt: Date;
     finishedAt: Date;
+    eventId: string | null;
 }
 
 export async function recordRun(input: CreateRunInput): Promise<string> {
@@ -35,9 +36,10 @@ export async function recordRun(input: CreateRunInput): Promise<string> {
                 error_message,
                 started_at,
                 finished_at,
-                duration_ms
+                duration_ms,
+                event_id
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            VALUES ($1, $2, $3, $4, $5, $6, $7,$8)
             RETURNING id`,
             [
                 input.flowId,
@@ -47,6 +49,7 @@ export async function recordRun(input: CreateRunInput): Promise<string> {
                 input.startedAt.toISOString(),
                 input.finishedAt.toISOString(),
                 Math.round(durationMs),
+                input.eventId,
             ],
         );
 
@@ -316,4 +319,18 @@ export async function getFlowStats(
             ? toIso(row.last_run_at)
             : null,
     };
+}
+
+// Working on: idempotency lookup — if this flow has already processed
+// this exact event_id, return that original run instead of re-running
+// the flow's steps. Returns null if no prior run with this event_id exists.
+export async function findRunByEventId(
+    flowId: string,
+    eventId: string,
+): Promise<{ id: string; status: string } | null> {
+    const { rows } = await pool.query<{ id: string; status: string }>(
+        `SELECT id, status FROM runs WHERE flow_id = $1 AND event_id = $2 LIMIT 1`,
+        [flowId, eventId],
+    );
+    return rows[0] ?? null;
 }

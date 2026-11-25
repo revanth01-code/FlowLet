@@ -1,16 +1,15 @@
 // Working on: POST /api/hooks/:flowId — the webhook trigger.
-// We deliberately do NOT use Elysia's `body` parsing here: HMAC
-// verification needs the exact raw request bytes, and any JSON
-// parse-then-restringify (even via `type: "text"`) risks differing
-// from what the sender actually signed (key order, whitespace, etc).
-// Reading `request.text()` directly guarantees we get the untouched body.
+// NEW: if the sender includes X-Event-Id and we've already processed
+// that exact (flow, event) pair, we return the ORIGINAL run's result
+// instead of re-executing the flow's steps. This makes the endpoint
+// safe against at-least-once delivery / retry storms from senders.
 
 import { Elysia } from "elysia";
 import { ObjectId } from "mongodb";
 import { getFlowsCollection } from "../db/mongo";
 import { verifySignature } from "../services/signature.service";
 import { runFlowSteps } from "../services/engine/engine";
-import { recordRun } from "../services/run.service";
+import { recordRun, findRunByEventId } from "../services/run.service";
 import { ConflictError, NotFoundError, UnauthorizedError, ValidationError } from "../errors/AppError";
 
 export const hooksRoutes = new Elysia().post(
@@ -45,7 +44,20 @@ export const hooksRoutes = new Elysia().post(
         // 4. Flow enabled?
         if (!flow.enabled) throw new ConflictError("Flow is disabled");
 
-        // 5. Run it.
+        // 5. Duplicate event check — BEFORE running steps, since the whole
+        // point is to avoid re-executing (e.g. a second http_request call
+        // to a downstream system) on a retried delivery.
+        const eventId = headers["x-event-id"] ?? null;
+
+        if (eventId) {
+            const existing = await findRunByEventId(params.flowId, eventId);
+            if (existing) {
+                set.status = 200;
+                return { runId: existing.id, status: existing.status };
+            }
+        }
+
+        // 6. Run it.
         const startedAt = new Date();
         const result = await runFlowSteps(flow.steps, payload);
         const finishedAt = new Date();
@@ -56,10 +68,11 @@ export const hooksRoutes = new Elysia().post(
             result,
             startedAt,
             finishedAt,
+            eventId,
         });
 
         set.status = 200;
         return { runId, status: result.status };
     },
-    { parse: "none" }, // tell Elysia not to pre-parse the body at all — we read it ourselves
+    { parse: "none" },
 );
