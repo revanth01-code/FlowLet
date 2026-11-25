@@ -29,6 +29,11 @@ export function createApp() {
                 return { error: { code: "VALIDATION_ERROR", message: error.message, details: {} } };
             }
 
+            if (code === "NOT_FOUND") {
+                set.status = 404;
+                return { error: { code: "NOT_FOUND", message: "Route not found", details: {} } };
+            }
+
             console.error(error);
             set.status = 500;
             return { error: { code: "INTERNAL_ERROR", message: "Something went wrong", details: {} } };
