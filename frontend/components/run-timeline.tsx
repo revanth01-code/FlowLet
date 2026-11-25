@@ -8,10 +8,10 @@ function StepItem({ step }: { step: RunStepDetail }) {
   return (
     <li className={`timeline-item${isSkipped ? " skipped" : ""}`}>
       <div className="timeline-item-header">
-        <span>#{step.position + 1}</span>
-        <span>{step.type}</span>
+        <span className="timeline-step-badge">Step {step.position + 1}</span>
+        <span style={{ fontWeight: 600 }}>{step.type}</span>
         <RunStatusBadge status={step.status} />
-        <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "#555" }}>
+        <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>
           {step.durationMs}ms
         </span>
       </div>

@@ -16,11 +16,13 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <nav className="nav">
-          <Link href="/flows" className="nav-brand">
-            Flowlet
+          <Link href="/flows" className="nav-brand-container">
+            <span className="brand-logo">⚡</span>
+            <span className="nav-brand">Flowlet</span>
+            <span className="nav-badge">Automations</span>
           </Link>
-          <Link href="/flows/new" className="btn btn-sm">
-            + New flow
+          <Link href="/flows/new" className="btn btn-primary btn-sm">
+            + New Flow
           </Link>
         </nav>
         <main className="main">{children}</main>

@@ -99,7 +99,7 @@ function TransformEditor({
               updateMapping(next);
             }}
           />
-          <span>→</span>
+          <span className="mapping-arrow">→</span>
           <label htmlFor={`${idPrefix}-mv-${i}`} className="sr-only">Dot path {i + 1}</label>
           <input
             id={`${idPrefix}-mv-${i}`}
@@ -203,13 +203,13 @@ export default function StepEditor({
   return (
     <div className="step-card">
       <div className="step-card-header">
-        <strong>Step {index + 1}</strong>
+        <span className="step-number-tag">Step {index + 1}</span>
         <label htmlFor={`${idPrefix}-type`} className="sr-only">Step type</label>
         <select
           id={`${idPrefix}-type`}
           value={step.type}
           onChange={(e) => handleTypeChange(e.target.value as StepType)}
-          style={{ flex: "0 0 auto" }}
+          style={{ flex: "0 0 auto", width: "auto" }}
         >
           {STEP_TYPES.map((t) => (
             <option key={t} value={t}>{t}</option>

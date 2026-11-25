@@ -55,10 +55,7 @@ describe("POST /api/flows", () => {
 
 // Add this below the existing describe block, in the same file,
 // reusing the `app` from beforeAll.
-beforeAll(async () => {
-    await connectMongo();
-    app = createApp();
-});
+
 
 
 describe("duplicate event detection", () => {

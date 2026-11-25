@@ -144,15 +144,14 @@ export default function FlowForm({ initialData }: FlowFormProps) {
       </div>
 
       {/* Enabled */}
-      <div className="form-group" style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
+      <div className="form-group checkbox-row">
         <input
           id="flow-enabled"
           type="checkbox"
           checked={enabled}
           onChange={(e) => setEnabled(e.target.checked)}
-          style={{ width: "auto" }}
         />
-        <label htmlFor="flow-enabled" style={{ fontWeight: "normal" }}>Enabled</label>
+        <label htmlFor="flow-enabled">Enabled (active and accepting webhook triggers)</label>
       </div>
 
       {/* Steps */}

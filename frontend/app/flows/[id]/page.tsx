@@ -372,7 +372,7 @@ curl -X POST ${webhookUrl} \\
       <div className="card">
         <h2>Webhook URL</h2>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "0.75rem" }}>
-          <code style={{ background: "#f4f4f4", padding: "0.3rem 0.5rem", borderRadius: 4, fontSize: "0.85rem", wordBreak: "break-all" }}>
+          <code className="inline-code">
             {webhookUrl}
           </code>
           <button
@@ -385,8 +385,8 @@ curl -X POST ${webhookUrl} \\
         </div>
 
         <details>
-          <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.9rem" }}>
-            curl example (with HMAC signature)
+          <summary style={{ cursor: "pointer", fontWeight: 600, fontSize: "0.88rem", color: "var(--primary)" }}>
+            View curl example (with HMAC signature)
           </summary>
           <pre className="code-block" style={{ marginTop: "0.5rem" }}>
             {curlExample}
@@ -401,10 +401,10 @@ curl -X POST ${webhookUrl} \\
           </button>
         </details>
 
-        <div style={{ marginTop: "0.75rem" }}>
-          <span style={{ fontSize: "0.82rem", color: "#555" }}>
+        <div style={{ marginTop: "0.85rem", paddingTop: "0.75rem", borderTop: "1px solid var(--border-light)" }}>
+          <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
             Webhook secret:{" "}
-            <code style={{ background: "#f4f4f4", padding: "0.1rem 0.4rem", borderRadius: 3, fontSize: "0.82rem" }}>
+            <code className="inline-code">
               {flow.webhookSecret}
             </code>
           </span>
