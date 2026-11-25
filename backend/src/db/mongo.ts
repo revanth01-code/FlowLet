@@ -1,34 +1,24 @@
-// Working on: Mongo client singleton + the `flows` collection + its indexes.
-// Index choice, explained:
-//   - `enabled` index: GET /api/flows commonly needs to show/filter by
-//     enabled state, and the webhook trigger checks `enabled` on every
-//     single incoming event (3.2: "Flow is disabled -> 409"), so this is
-//     a hot-path lookup.
-//   - We do NOT index `name` uniquely because the spec doesn't require
-//     unique flow names, only a length constraint (3-80 chars), which is
-//     a validation-layer concern, not a DB-layer one.
-
 import { MongoClient, type Collection } from "mongodb";
 import { env } from "../config/env";
-import type { Flow } from "../models/flow.model";
+import type { FlowDocument } from "../models/flow.model";
 
 const client = new MongoClient(env.mongoUri);
 
-let flowsCollection: Collection<Flow> | null = null;
+let flowsCollection: Collection<FlowDocument> | null = null;
 
 export async function connectMongo(): Promise<void> {
     await client.connect();
     const db = client.db(env.mongoDbName);
-    flowsCollection = db.collection<Flow>("flows");
+    flowsCollection = db.collection<FlowDocument>("flows");
 
     // Serves: GET /api/flows filtering/sorting by enabled state, and the
-    // webhook trigger's "is this flow enabled?" check.
+    // webhook trigger's "is this flow enabled?" check on every event.
     await flowsCollection.createIndex({ enabled: 1 });
 
     console.log(`Connected to MongoDB (${env.mongoDbName})`);
 }
 
-export function getFlowsCollection(): Collection<Flow> {
+export function getFlowsCollection(): Collection<FlowDocument> {
     if (!flowsCollection) {
         throw new Error("Mongo not connected yet — call connectMongo() first.");
     }

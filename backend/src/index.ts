@@ -1,17 +1,44 @@
-// Working on: entry point — now also connects to MongoDB before the
-// server starts accepting requests.
-
 import { Elysia } from "elysia";
 import { env } from "./config/env";
 import { connectMongo } from "./db/mongo";
+import { flowsRoutes } from "./routes/flows.routes";
+import { AppError } from "./errors/AppError";
 
 async function start() {
     await connectMongo();
 
-    const app = new Elysia().get("/health", () => ({
-        status: "ok",
-        service: "flowlet-backend",
-    }));
+    const app = new Elysia()
+        .onError(({ error, code, set }) => {
+            if (error instanceof AppError) {
+                set.status = error.statusCode;
+                return error.toResponse();
+            }
+
+            // Elysia's own schema validation failures (e.g. name too short,
+            // missing required field) land here with code "VALIDATION".
+            if (code === "VALIDATION") {
+                set.status = 400;
+                return {
+                    error: {
+                        code: "VALIDATION_ERROR",
+                        message: error.message,
+                        details: {},
+                    },
+                };
+            }
+
+            console.error(error);
+            set.status = 500;
+            return {
+                error: {
+                    code: "INTERNAL_ERROR",
+                    message: "Something went wrong",
+                    details: {},
+                },
+            };
+        })
+        .get("/health", () => ({ status: "ok", service: "flowlet-backend" }))
+        .use(flowsRoutes);
 
     app.listen(env.port, () => {
         console.log(`Flowlet backend running at http://localhost:${env.port}`);

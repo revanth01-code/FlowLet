@@ -1,6 +1,8 @@
-// Working on: Flow + Step TypeScript types — the shape stored in MongoDB.
-// These are the single source of truth for what a "flow" looks like
-// across the whole backend (CRUD, engine, webhook trigger).
+// Working on: Flow + Step types. FlowDocument is what Mongo actually
+// stores (_id: ObjectId). Flow is what the API returns (_id: string).
+// Keeping these separate avoids ObjectId leaking into route/response code.
+
+import type { ObjectId } from "mongodb";
 
 export type StepType = "filter" | "transform" | "http_request";
 
@@ -24,16 +26,25 @@ export interface HttpRequestStep {
 
 export type Step = FilterStep | TransformStep | HttpRequestStep;
 
-export interface Flow {
-    _id?: string; // Mongo ObjectId as string once serialized
-    name: string; // 3 to 80 chars
+export interface FlowDocument {
+    _id?: ObjectId;
+    name: string;
     description?: string;
     enabled: boolean;
     steps: Step[]; // 1 to 5 steps
-    webhookSecret: string; // generated server-side on creation, never user-supplied
+    webhookSecret: string; // generated server-side, never user-supplied
     createdAt: string; // ISO date
     updatedAt: string; // ISO date
 }
 
+export interface Flow extends Omit<FlowDocument, "_id"> {
+    _id: string;
+}
+
 // Shape returned by GET /api/flows (list view) — no steps, no secret.
 export type FlowSummary = Pick<Flow, "_id" | "name" | "enabled" | "createdAt" | "updatedAt">;
+
+export type CreateFlowInput = Pick<Flow, "name" | "steps"> &
+    Partial<Pick<Flow, "description" | "enabled">>;
+
+export type UpdateFlowInput = Partial<Pick<Flow, "name" | "description" | "enabled" | "steps">>;
