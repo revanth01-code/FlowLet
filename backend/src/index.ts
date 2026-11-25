@@ -4,6 +4,7 @@ import { connectMongo } from "./db/mongo";
 import { flowsRoutes } from "./routes/flows.routes";
 import { hooksRoutes } from "./routes/hooks.routes";
 import { runsRoutes } from "./routes/runs.routes";
+import { mockRoutes } from "./routes/mock.routes";
 import { AppError } from "./errors/AppError";
 
 async function start() {
@@ -28,7 +29,8 @@ async function start() {
         .get("/health", () => ({ status: "ok", service: "flowlet-backend" }))
         .use(flowsRoutes)
         .use(hooksRoutes)
-        .use(runsRoutes);
+        .use(runsRoutes)
+        .use(mockRoutes);
 
     app.listen(env.port, () => {
         console.log(`Flowlet backend running at http://localhost:${env.port}`);
