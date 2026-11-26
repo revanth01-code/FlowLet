@@ -7,7 +7,7 @@ A mini webhook automation service — built for the Octaviaflow Full Stack Devel
 **Prerequisites:** Docker, Bun, Node.js (for the frontend).
 
 ```bash
-git clone <this-repo-url>
+git clone "https://github.com/revanth01-code/FlowLet.git"
 cd flowlet
 
 # Root-level env (controls docker-compose host ports)
