@@ -201,3 +201,9 @@ client can poll or that the UI can update live. I'd also revisit the Postgres
 connection pool size and the Mongo driver's connection pooling defaults, since both
 would need to handle a higher concurrent connection count than they're currently
 tuned for.
+
+## Screen recording
+
+[Link to the 4-minute walkthrough)[https://drive.google.com/file/d/1zSdR4pQ3d95v-lHuOCTOLee9l49qT6XP/view?usp=sharing] — covers flow creation, a
+successful run, a filtered run, a failed http_request step, duplicate-event
+handling, run history/stats, and the interface at 375px (mobile) width.
