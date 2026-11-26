@@ -15,6 +15,24 @@ function blankStep(type: StepType): Step {
   return { type: "http_request", url: "", method: "POST" };
 }
 
+/**
+ * Coerces user-typed input into the appropriate type based on operator.
+ * For `gt` and `lt`, numeric-looking input MUST be converted to a number because
+ * the backend engine strictly checks `typeof actual === "number" && typeof step.value === "number"`.
+ * For `eq` and `neq`, numeric-looking input is also converted to number so that numeric field
+ * comparisons (e.g. id === 10 or count === 0) work, while preserving strings for non-numbers.
+ * For `contains`, value should remain string (or trimmed string).
+ */
+function parseFilterValue(valStr: string, operator: FilterOperator): unknown {
+  const trimmed = valStr.trim();
+  if (operator === "gt" || operator === "lt" || operator === "eq" || operator === "neq") {
+    if (trimmed !== "" && !isNaN(Number(trimmed))) {
+      return Number(trimmed);
+    }
+  }
+  return valStr;
+}
+
 // ─── Sub-editors ──────────────────────────────────────────────────────────────
 
 function FilterEditor({
@@ -26,6 +44,23 @@ function FilterEditor({
   onChange: (s: Step) => void;
   idPrefix: string;
 }) {
+  const handleOperatorChange = (op: FilterOperator) => {
+    // If switching operator, re-evaluate value coercion (e.g. switching to/from gt/lt)
+    const rawStr = step.value === null || step.value === undefined ? "" : String(step.value);
+    onChange({
+      ...step,
+      operator: op,
+      value: parseFilterValue(rawStr, op),
+    });
+  };
+
+  const handleValueChange = (valStr: string) => {
+    onChange({
+      ...step,
+      value: parseFilterValue(valStr, step.operator),
+    });
+  };
+
   return (
     <>
       <div className="form-group">
@@ -42,9 +77,7 @@ function FilterEditor({
         <select
           id={`${idPrefix}-op`}
           value={step.operator}
-          onChange={(e) =>
-            onChange({ ...step, operator: e.target.value as FilterOperator })
-          }
+          onChange={(e) => handleOperatorChange(e.target.value as FilterOperator)}
         >
           {OPERATORS.map((op) => (
             <option key={op} value={op}>{op}</option>
@@ -55,8 +88,8 @@ function FilterEditor({
         <label htmlFor={`${idPrefix}-value`}>Value</label>
         <input
           id={`${idPrefix}-value`}
-          value={String(step.value)}
-          onChange={(e) => onChange({ ...step, value: e.target.value })}
+          value={step.value === null || step.value === undefined ? "" : String(step.value)}
+          onChange={(e) => handleValueChange(e.target.value)}
           placeholder='e.g. "purchase" or 42'
         />
       </div>
